@@ -34,7 +34,10 @@ function Test() {
       "onComplete": () => callback("composite request stream onComplete"),
       "onError": (error) => callback("composite request stream onError: " + String(error)),
       "onNext": (streamMessage) => callback("composite request stream onNext"),
-      "onSubscribe": (sub) => callback("composite request stream onSubscribe")
+      "onSubscribe": (sub) => {
+        callback("composite request stream onSubscribe");
+        sub.request(MAX_STREAM_ID)
+      }
     });
   }
 
