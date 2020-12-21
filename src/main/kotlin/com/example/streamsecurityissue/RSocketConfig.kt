@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.messaging.rsocket.RSocketStrategies
+import org.springframework.security.messaging.handler.invocation.reactive.AuthenticationPrincipalArgumentResolver
 import org.springframework.web.util.pattern.PathPatternRouteMatcher
 
 
@@ -23,10 +24,11 @@ class RSocketConfig {
   @Bean
   fun rSocketMessageHandler(strategies: RSocketStrategies?): RSocketMessageHandler? {
     println("messageHandler initiated!")
-    return RSocketMessageHandler().apply {
-      routeMatcher = PathPatternRouteMatcher()
-      rSocketStrategies = strategies!!
-    }
+    val handler = RSocketMessageHandler()
+    handler.argumentResolverConfigurer.addCustomResolver(AuthenticationPrincipalArgumentResolver())
+    handler.routeMatcher = PathPatternRouteMatcher()
+    handler.rSocketStrategies = strategies!!
+    return handler
   }
 
   @Bean
@@ -37,11 +39,7 @@ class RSocketConfig {
           .anyExchange().permitAll()
     }
         .jwt { jwtSpec: RSocketSecurity.JwtSpec ->
-          try {
             jwtSpec.authenticationManager(rSocketAuthenticationManager)
-          } catch (e: Exception) {
-            throw RuntimeException(e)
-          }
         }
 
     return rsocket.build()
